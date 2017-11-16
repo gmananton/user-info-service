@@ -1,6 +1,10 @@
 package com.gman.controller;
 
+import com.gman.service.GoodbyeService;
+import com.gman.service.GreetingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -9,6 +13,7 @@ import com.gman.dto.Car;
 import com.gman.dto.User;
 import com.gman.service.UserService;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +25,22 @@ import java.util.List;
 @RequestMapping("/")
 public class UserInfoController {
 
+    @Value("${language.goodbye}")
+    private String goodbyeLang;
+
     @Autowired
-    UserService userService;
+    private UserService userService;
+
+    // Используется конфигурация реализаций в GreetingServiceConfig.
+    // Конкретная реализация выбирается на основе переменной language.greeting
+    @Autowired
+    private GreetingService greetingService;
+
+    // Используется конфигурация реализаций в GoodbyeServiceConfig.
+    // Конкретная реализация выбирается на основе имени бина
+    @Autowired
+    @Qualifier("russianGoodbyeService")
+    private GoodbyeService goodbyeService;
 
 
     @RequestMapping("index")
@@ -36,7 +55,12 @@ public class UserInfoController {
 
     @RequestMapping("hello")
     public String greetUser(@RequestParam (name = "username", defaultValue = "USERNAME") String userName) {
-        return "Hello " + userName + "\n";
+        return greetingService.getGreeting(userName);
+    }
+
+    @RequestMapping("bye")
+    public String byeUser(@RequestParam (name = "username", defaultValue = "USERNAME") String userName) {
+        return goodbyeService.goodbye(userName);
     }
 
     @RequestMapping("userInfo/{name}/{age}")
